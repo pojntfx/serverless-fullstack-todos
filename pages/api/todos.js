@@ -2,7 +2,7 @@ import query from "../../lib/db";
 
 const todos = async (req, res) => {
   switch (req.method) {
-    case "POST":
+    case "POST": {
       if (!req.body.title || !req.body.body) {
         res.statusCode = 422;
         res.end("missing todo title or body");
@@ -18,8 +18,9 @@ returning *;`;
       res.json({ id: newTodo.id, title: newTodo.title, body: newTodo.body });
 
       return;
+    }
 
-    case "GET":
+    case "GET": {
       const todos = await query`select * from todos;`;
 
       res.statusCode = 200;
@@ -32,12 +33,14 @@ returning *;`;
       );
 
       return;
+    }
 
-    default:
+    default: {
       res.statusCode = 405;
       res.end("method not allowed");
 
       return;
+    }
   }
 };
 

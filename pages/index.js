@@ -23,6 +23,8 @@ const Home = (props) => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
+  const [updatingTodoId, setUpdatingTodoId] = useState(-1);
+
   return (
     <div>
       <h1>Todos</h1>
@@ -38,23 +40,50 @@ const Home = (props) => {
 
           setTitle("");
           setBody("");
+          setUpdatingTodoId(-1);
 
-          mutate(
-            "/api/todos",
-            [...todos, { id: Date.now(), ...newTodo }],
-            false
-          );
+          if (updatingTodoId == -1) {
+            mutate(
+              "/api/todos",
+              [...todos, { id: Date.now(), ...newTodo }],
+              false
+            );
 
-          await fetcher("/api/todos", {
-            method: "POST",
-            body: JSON.stringify(newTodo),
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-          });
+            await fetcher("/api/todos", {
+              method: "POST",
+              body: JSON.stringify(newTodo),
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+            });
 
-          mutate("/api/todos");
+            mutate("/api/todos");
+          } else {
+            mutate(
+              "/api/todos",
+              todos.map((todo) =>
+                todo.id == updatingTodoId
+                  ? {
+                      ...todo,
+                      ...newTodo,
+                    }
+                  : todo
+              ),
+              false
+            );
+
+            await fetcher(`/api/todos/${updatingTodoId}`, {
+              method: "PUT",
+              body: JSON.stringify(newTodo),
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+            });
+
+            mutate("/api/todos");
+          }
         }}
       >
         <label>
@@ -82,7 +111,23 @@ const Home = (props) => {
 
         <br />
 
-        <input type="submit" value="Create todo" />
+        <input
+          type="submit"
+          value={updatingTodoId == -1 ? "Create todo" : "Update todo"}
+        />
+
+        {updatingTodoId != -1 && (
+          <button
+            type="button"
+            onClick={() => {
+              setUpdatingTodoId(-1);
+              setTitle("");
+              setBody("");
+            }}
+          >
+            Cancel editing
+          </button>
+        )}
       </form>
 
       <ul>
@@ -107,6 +152,15 @@ const Home = (props) => {
                 }}
               >
                 Delete Todo
+              </button>
+              <button
+                onClick={() => {
+                  setUpdatingTodoId(todo.id);
+                  setTitle(todo.title);
+                  setBody(todo.body);
+                }}
+              >
+                Update Todo
               </button>
             </div>
           </li>

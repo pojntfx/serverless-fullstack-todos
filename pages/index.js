@@ -1,5 +1,6 @@
 import useSWR, { mutate } from "swr";
 import fetcher from "../lib/fetcher";
+import { useState } from "react";
 
 export const getServerSideProps = async ({ req }) => {
   const todos = await fetcher(`http://${req.headers.host}/api/todos`);
@@ -19,6 +20,9 @@ const Home = (props) => {
   if (err) return <div>😞 Failed to load todos</div>;
   if (!todos) return <div>⌛ Loading todos ...</div>;
 
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+
   return (
     <div>
       <h1>Todos</h1>
@@ -28,11 +32,12 @@ const Home = (props) => {
           e.preventDefault();
 
           const newTodo = {
-            title: e.target.elements.title.value,
-            body: e.target.elements.body.value,
+            title,
+            body,
           };
 
-          e.target.reset();
+          setTitle("");
+          setBody("");
 
           mutate(
             "/api/todos",
@@ -53,13 +58,26 @@ const Home = (props) => {
         }}
       >
         <label>
-          New todo title: <input type="text" name="title" required />
+          New todo title:{" "}
+          <input
+            type="text"
+            name="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
         </label>
 
         <br />
 
         <label>
-          New todo body: <textarea name="body" required></textarea>
+          New todo body:{" "}
+          <textarea
+            name="body"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            required
+          ></textarea>
         </label>
 
         <br />

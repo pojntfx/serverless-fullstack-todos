@@ -2,12 +2,12 @@ import query from "../../../lib/db";
 
 const todo = async (req, res) => {
   switch (req.method) {
-    case "GET":
+    case "GET": {
       const [
-        todo,
+        fetchedTodo,
       ] = await query`select * from todos where id = ${req.query.todoId};`;
 
-      if (!todo) {
+      if (!fetchedTodo) {
         res.statusCode = 404;
         res.end("todo not found");
 
@@ -16,18 +16,44 @@ const todo = async (req, res) => {
 
       res.statusCode = 200;
       res.json({
-        id: todo.id,
-        title: todo.title,
-        body: todo.body,
+        id: fetchedTodo.id,
+        title: fetchedTodo.title,
+        body: fetchedTodo.body,
       });
 
       return;
+    }
 
-    default:
+    case "DELETE": {
+      const [
+        fetchedTodo,
+      ] = await query`select * from todos where id = ${req.query.todoId};`;
+
+      if (!fetchedTodo) {
+        res.statusCode = 404;
+        res.end("todo not found");
+
+        return;
+      }
+
+      await query`delete from todos where id = ${req.query.todoId};`;
+
+      res.statusCode = 200;
+      res.json({
+        id: fetchedTodo.id,
+        title: fetchedTodo.title,
+        body: fetchedTodo.body,
+      });
+
+      return;
+    }
+
+    default: {
       res.statusCode = 405;
       res.end("method not allowed");
 
       return;
+    }
   }
 };
 

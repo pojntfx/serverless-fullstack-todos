@@ -10,8 +10,8 @@ const todos = async (req, res) => {
         return;
       }
 
-      const [newTodo] = await query`insert into todos (title, body)
-values (${req.body.title}, ${req.body.body})
+      const [newTodo] = await query`insert into todos (title, body, insertDate)
+values (${req.body.title}, ${req.body.body}, current_timestamp)
 returning *;`;
 
       res.statusCode = 201;
@@ -21,7 +21,7 @@ returning *;`;
     }
 
     case "GET": {
-      const todos = await query`select * from todos;`;
+      const todos = await query`select * from todos order by insertDate;`;
 
       res.statusCode = 200;
       res.json(

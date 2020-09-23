@@ -1,29 +1,38 @@
 import useSWR from "swr";
 import fetcher from "../lib/fetcher";
-import { useState } from "react";
 
-const Home = () => {
-  const [name, setName] = useState("");
+export const getServerSideProps = async ({ req }) => {
+  const todos = await fetcher(`http://${req.headers.host}/api/todos`);
 
-  const { data, err } = useSWR(
-    () => name != "" && `/api/greeting?name=${name}`,
-    fetcher
-  );
+  return {
+    props: {
+      todos,
+    },
+  };
+};
 
-  if (err) return <div>😞 Failed to load</div>;
-  if (!data) return <div>⌛ Loading ...</div>;
+const Home = (props) => {
+  const { data, err } = useSWR("/api/todos", fetcher, {
+    initialData: props.todos,
+  });
+
+  if (err) return <div>😞 Failed to load todos</div>;
+  if (!data) return <div>⌛ Loading todos ...</div>;
 
   return (
     <div>
-      <h1>Greetings Generator</h1>
+      <h1>Todos</h1>
 
-      {name && <div>Message from the API: {data.message}</div>}
-
-      <input
-        placeholder="Your name"
-        values={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <ul>
+        {data.map((todo, index) => (
+          <li key={index}>
+            <div>
+              <h2>{todo.title}</h2>
+              <p>{todo.body}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
